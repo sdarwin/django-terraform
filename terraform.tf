@@ -88,3 +88,88 @@ resource "null_resource" "ProvisionRemoteHosts" {
   }
 }
 
+resource "aws_lb" "django" {
+  name               = "django"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = ["${aws_security_group.lb_sg.id}"]
+  subnets            = ["${aws_default_subnet.public-1a.id}", "${aws_default_subnet.public-1b.id}", "${aws_default_subnet.public-1c.id}"]
+
+  tags = {
+    Environment = "production"
+  }
+}
+
+resource "aws_security_group" "lb_sg" {
+  name        = "django_lb"
+  description = "django_lb"
+  #vpc_id      = "${aws_vpc.main.id}"
+
+  ingress {
+    # TLS (change to whatever ports you need)
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    # Please restrict your ingress to only necessary IPs and ports.
+    # Opening to 0.0.0.0/0 can lead to security vulnerabilities.
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_lb_target_group_attachment" "test" {
+  count = "${var.instance_count}"
+  target_group_arn = "${aws_lb_target_group.test.arn}"
+  #target_id        = "${aws_instance.test.id}"
+  target_id        =  "${element(aws_instance.web.*.id, count.index)}"
+  port             = "443"
+}
+
+resource "aws_lb_target_group" "test" {
+  name     = "test"
+  port     = "443"
+  protocol = "HTTPS"
+  vpc_id   = "${aws_default_vpc.default.id}"
+  health_check {
+    path = "/polls"
+    protocol = "HTTPS"
+    matcher = "200,300,301,302,303"
+  }
+}
+
+resource "aws_lb_listener" "lb-http" {
+   load_balancer_arn = "${aws_lb.django.arn}"
+   port = "443"
+   protocol = "HTTPS"
+   ssl_policy        = "ELBSecurityPolicy-2016-08"
+   certificate_arn   = "arn:aws:acm:eu-central-1:130932026351:certificate/876c7f40-f090-4f60-ad84-84514271643d"
+
+default_action {
+     target_group_arn = "${aws_lb_target_group.test.arn}"
+     type = "forward"
+   }
+}
+
+resource "aws_default_subnet" "public-1a" {
+  availability_zone = "eu-central-1a"
+}
+
+resource "aws_default_subnet" "public-1b" {
+  availability_zone = "eu-central-1b"
+}
+
+resource "aws_default_subnet" "public-1c" {
+  availability_zone = "eu-central-1c"
+}
+
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}

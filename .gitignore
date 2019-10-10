@@ -1,3 +1,4 @@
 .kitchen
 .terraform
+terraform.tfstate*
 
