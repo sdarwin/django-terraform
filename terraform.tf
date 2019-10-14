@@ -27,7 +27,7 @@ resource "aws_instance" "web" {
     connection {
       type     = "ssh"
       user     = "ubuntu"
-      private_key = "${file("/root/.ssh/id_rsa")}"
+      private_key = "${file("${var.ssh_key_path}")}"
       #password = "${var.root_password}"
       host     = "${self.private_ip}"
     }
@@ -47,7 +47,8 @@ resource "aws_instance" "web" {
     vault_json = <<-EOF
     {
       "vaultbag": [
-        "gitkey"
+        "gitkey",
+        "auth"
       ]
     }
     EOF
@@ -55,7 +56,7 @@ resource "aws_instance" "web" {
     #environment     = "production"
     use_policyfile = true
     policy_group = "production"
-    policy_name = "django-tutorial"
+    policy_name = "django-website"
     #log_to_file = true
     client_options  = ["chef_license 'accept'"]
     run_list        = ["cookbook::recipe"]
@@ -65,7 +66,7 @@ resource "aws_instance" "web" {
     server_url      = "https://chefserver/organizations/testorg"
     recreate_client = true
     user_name       = "sdarwin"
-    user_key        = "${file("/root/.chef/sdarwin.pem")}"
+    user_key        = "${file("~/.chef/sdarwin.pem")}"
     #version         = "12.4.1"
     # If you have a self signed cert on your chef server change this to :verify_none
     #ssl_verify_mode = ":verify_peer"

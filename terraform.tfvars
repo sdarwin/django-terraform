@@ -11,5 +11,5 @@ key_pair_public_key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCOiXQ6QlAIgdgnrWamlKR
 #GENERAL
 
 instance_count = "2"
-ssh_key_path = "/root/.ssh/id_rsa"
+ssh_key_path = "~/.ssh/id_rsa"
 ssh_user_name = "ubuntu"
