@@ -11,6 +11,9 @@ resource "aws_instance" "web" {
   ami = "ami-0ac05733838eabc06"
   vpc_security_group_ids = ["sg-09856843f6db67618"]
   key_name = "frankfurtkeypair"
+  tags = {
+    Name = "${var.environment}-web"
+  }
 
   provisioner "remote-exec" {
     connection {
@@ -55,7 +58,7 @@ resource "aws_instance" "web" {
 
     #environment     = "production"
     use_policyfile = true
-    policy_group = "production"
+    policy_group = "${var.environment}"
     policy_name = "django-website"
     #log_to_file = true
     client_options  = ["chef_license 'accept'"]
@@ -90,19 +93,19 @@ resource "null_resource" "ProvisionRemoteHosts" {
 }
 
 resource "aws_lb" "django" {
-  name               = "django"
+  name               = "django-${var.environment}"
   internal           = false
   load_balancer_type = "application"
   security_groups    = ["${aws_security_group.lb_sg.id}"]
   subnets            = ["${aws_default_subnet.public-1a.id}", "${aws_default_subnet.public-1b.id}", "${aws_default_subnet.public-1c.id}"]
 
   tags = {
-    Environment = "production"
+    Environment = "${var.environment}"
   }
 }
 
 resource "aws_security_group" "lb_sg" {
-  name        = "django_lb"
+  name        = "django_lb_${var.environment}"
   description = "django_lb"
   #vpc_id      = "${aws_vpc.main.id}"
 
@@ -133,7 +136,7 @@ resource "aws_lb_target_group_attachment" "test" {
 }
 
 resource "aws_lb_target_group" "test" {
-  name     = "test"
+  name     = "test-${var.environment}"
   port     = "443"
   protocol = "HTTPS"
   vpc_id   = "${aws_default_vpc.default.id}"

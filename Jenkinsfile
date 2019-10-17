@@ -4,7 +4,15 @@ pipeline {
         TEST = 'yes'
         DEPLOY = 'yes'
     }
+    
     stages {
+        stage('Prepare') {
+          steps {
+           script {
+      if (!env.ENVIRONMENT) {
+        env.ENVIRONMENT = "production"
+      }
+    }}}
         stage('Test') {
             when { environment name: 'TEST', value: 'yes' }
             steps {
@@ -31,7 +39,8 @@ set -e
 terraform init
 terraform taint null_resource.ProvisionRemoteHosts[0] || true
 terraform taint null_resource.ProvisionRemoteHosts[1] || true
-terraform apply -auto-approve
+echo "$ENVIRONMENT"
+terraform apply -var "environment=$ENVIRONMENT" -auto-approve
 '''
             }
         }
