@@ -51,7 +51,8 @@ resource "aws_instance" "web" {
     {
       "vaultbag": [
         "gitkey",
-        "auth"
+        "auth-production",
+        "auth-staging"
       ]
     }
     EOF
