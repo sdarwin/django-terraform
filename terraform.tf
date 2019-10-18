@@ -49,10 +49,9 @@ resource "aws_instance" "web" {
     EOF
     vault_json = <<-EOF
     {
-      "vaultbag": [
+      "vaultbag-${var.environment}": [
         "gitkey",
-        "auth-production",
-        "auth-staging"
+        "auth"
       ]
     }
     EOF
